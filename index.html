@@ -26,11 +26,21 @@
             font-size: 20px;
             cursor: pointer;
             padding: 20px;
+            flex-direction: column;
+        }
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            color: gray;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="card" onclick="flipCard()">Loading...</div>
+    <div class="card" onclick="flipCard()">
+        <div class="label" id="label">Question</div>
+        <div id="content">Loading...</div>
+    </div>
 
     <script>
         let flashcards = [];
@@ -39,41 +49,43 @@
 
         async function fetchFlashcards() {
             try {
-                const response = await fetch("https://docs.google.com/spreadsheets/d/1l8HkZ_6P2yfVioMnZb-acEpEyaoY0Mml-1-4L9Dndy8/gviz/tq?tqx=out:json");
-                const text = await response.text();
-                const json = JSON.parse(text.substring(47, text.length - 2)); // Remove extra Google Sheets metadata
+                const response = await fetch("https://script.google.com/macros/s/AKfycbykXhSIWVJ7UnG8COlcCXh2t6GLXH_nkK9CdT-oBKFEbukT8BzueLd0t3QmfVs6oORl/exec");
+                flashcards = await response.json();
                 
-                const rows = json.table.rows;
-                flashcards = rows.map(row => ({
-                    question: row.c[0]?.v || "No Question",
-                    answer: row.c[1]?.v || "No Answer"
-                }));
-
                 showNextCard();
             } catch (error) {
                 console.error("Error loading flashcards:", error);
-                document.querySelector('.card').textContent = "Failed to load data.";
+                document.querySelector('#content').textContent = "Failed to load data.";
             }
         }
 
         function showNextCard() {
             if (flashcards.length === 0) {
-                document.querySelector('.card').textContent = "No flashcards available.";
+                document.querySelector('#content').textContent = "No flashcards available.";
                 return;
             }
 
             currentIndex = Math.floor(Math.random() * flashcards.length);
             showingQuestion = true;
-            document.querySelector('.card').textContent = flashcards[currentIndex].question;
+            document.querySelector('#label').textContent = "Question";
+            document.querySelector('#content').textContent = flashcards[currentIndex].question;
         }
 
         function flipCard() {
             if (flashcards.length === 0) return;
 
+            if (showingQuestion) {
+                // Show the answer
+                document.querySelector('#label').textContent = "Answer";
+                document.querySelector('#content').textContent = flashcards[currentIndex].answer;
+            } else {
+                // Pick a new random card
+                currentIndex = Math.floor(Math.random() * flashcards.length);
+                document.querySelector('#label').textContent = "Question";
+                document.querySelector('#content').textContent = flashcards[currentIndex].question;
+            }
+            
             showingQuestion = !showingQuestion;
-            document.querySelector('.card').textContent = showingQuestion 
-                ? flashcards[currentIndex].question 
-                : flashcards[currentIndex].answer;
         }
 
         fetchFlashcards();
