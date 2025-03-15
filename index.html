@@ -53,14 +53,14 @@
         let flashcards = [];
         let shuffledDeck = [];
         let currentIndex = 0;
-        let previousStates = []; // Stores history of previous states
+        let previousStates = []; // Stack to track previous states
         let showingQuestion = true;
 
         async function fetchFlashcards() {
             try {
                 const response = await fetch("https://script.google.com/macros/s/AKfycbykXhSIWVJ7UnG8COlcCXh2t6GLXH_nkK9CdT-oBKFEbukT8BzueLd0t3QmfVs6oORl/exec");
                 flashcards = await response.json();
-                
+
                 shuffleDeck();
                 showNextCard();
             } catch (error) {
@@ -98,20 +98,19 @@
             // Store current state before flipping
             previousStates.push({ index: currentIndex, isQuestion: showingQuestion });
 
-            showingQuestion = !showingQuestion;
-            document.querySelector('.card').textContent = showingQuestion 
-                ? `Question: ${shuffledDeck[currentIndex].question}` 
-                : `Answer: ${shuffledDeck[currentIndex].answer}`;
-
-            document.getElementById("backBtn").disabled = false;
-            
-            // If flipping to an answer, do nothing. If flipping back to question, move to next card
             if (showingQuestion) {
+                document.querySelector('.card').textContent = `Answer: ${shuffledDeck[currentIndex].answer}`;
+            } else {
+                // Move to next card if we were looking at an answer
                 currentIndex++;
                 if (currentIndex >= shuffledDeck.length) {
                     shuffleDeck();
                 }
+                document.querySelector('.card').textContent = `Question: ${shuffledDeck[currentIndex].question}`;
             }
+
+            showingQuestion = !showingQuestion;
+            document.getElementById("backBtn").disabled = false;
         }
 
         function goBack() {
