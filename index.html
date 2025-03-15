@@ -29,10 +29,6 @@
             padding: 20px;
             margin-bottom: 10px;
         }
-        .buttons {
-            display: flex;
-            gap: 10px;
-        }
         button {
             padding: 10px;
             font-size: 16px;
@@ -41,6 +37,7 @@
             border-radius: 5px;
             background-color: #007BFF;
             color: white;
+            margin-top: 10px;
         }
         button:disabled {
             background-color: gray;
@@ -50,16 +47,13 @@
 </head>
 <body>
     <div class="card" onclick="flipCard()">Loading...</div>
-    <div class="buttons">
-        <button onclick="goBack()" id="backBtn" disabled>Go Back</button>
-        <button onclick="showNextCard()">Next</button>
-    </div>
+    <button onclick="goBack()" id="backBtn" disabled>Go Back</button>
 
     <script>
         let flashcards = [];
         let shuffledDeck = [];
         let currentIndex = 0;
-        let previousStates = []; // Stack to track previous states
+        let previousStates = []; // Stores history of previous states
         let showingQuestion = true;
 
         async function fetchFlashcards() {
@@ -101,10 +95,23 @@
         function flipCard() {
             if (shuffledDeck.length === 0) return;
 
+            // Store current state before flipping
+            previousStates.push({ index: currentIndex, isQuestion: showingQuestion });
+
             showingQuestion = !showingQuestion;
             document.querySelector('.card').textContent = showingQuestion 
                 ? `Question: ${shuffledDeck[currentIndex].question}` 
                 : `Answer: ${shuffledDeck[currentIndex].answer}`;
+
+            document.getElementById("backBtn").disabled = false;
+            
+            // If flipping to an answer, do nothing. If flipping back to question, move to next card
+            if (showingQuestion) {
+                currentIndex++;
+                if (currentIndex >= shuffledDeck.length) {
+                    shuffleDeck();
+                }
+            }
         }
 
         function goBack() {
